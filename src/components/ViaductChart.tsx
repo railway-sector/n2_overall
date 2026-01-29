@@ -295,7 +295,7 @@ const ViaductChart = () => {
               : 1;
 
         const qExpression = `CP = '${contractpackages}' AND Type = ${typeSelect} AND Status = ${selectedStatus}`;
-        console.log(qExpression);
+
         polygonViewQueryFeatureHighlight({
           polygonLayer: viaductLayer,
           qExpression: qExpression,

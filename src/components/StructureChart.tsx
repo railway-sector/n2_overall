@@ -18,8 +18,6 @@ import {
   updatedDateCategoryNames,
   valueLabelColor,
 } from "../StatusUniqueValues";
-import "@esri/calcite-components/dist/components/calcite-label";
-import { CalciteLabel } from "@esri/calcite-components-react";
 import { ArcgisScene } from "@arcgis/map-components/dist/components/arcgis-scene";
 import { MyContext } from "../contexts/MyContext";
 
@@ -331,47 +329,69 @@ const StructureChart = memo(() => {
       >
         {!asOfDate ? "" : "As of " + asOfDate}
       </div>
+
       {/* Structure Chart */}
       <div
         id={chartID}
         style={{
-          // width: chard_width,
           height: "53vh",
           backgroundColor: "rgb(0,0,0,0)",
           color: "white",
-          marginTop: "30px",
-          marginBottom: "6%",
+          marginTop: "6%",
+          marginBottom: "10%",
         }}
       ></div>
+
       <div
         style={{
-          color: primaryLabelColor,
-          fontSize: "1.2rem",
-          // marginBottom: '13px',
-          marginLeft: "13px",
+          display: "flex",
+          marginTop: "3px",
+          marginLeft: "15px",
+          marginRight: "15px",
+          justifyContent: "space-between",
+          marginBottom: "10px",
         }}
       >
-        PERMIT-TO-ENTER
-      </div>
-      <CalciteLabel layout="inline">
-        {structureNumber[1] === 0 ? (
-          <b className="permitToEnterNumber" style={{ color: valueLabelColor }}>
-            {structureNumber[0]}% (0)
-          </b>
-        ) : (
-          <b className="permitToEnterNumber" style={{ color: valueLabelColor }}>
-            {structureNumber[0]}% ({thousands_separators(structureNumber[1])})
-          </b>
-        )}
-
         <img
           src="https://EijiGorilla.github.io/Symbols/Permit-To-Enter.png"
-          alt="Structure Logo"
-          height={"50px"}
-          width={"50px"}
-          style={{ margin: "auto", marginRight: "40px" }}
+          alt="Land Logo"
+          height={"13%"}
+          width={"13%"}
+          style={{ paddingTop: "5px", paddingLeft: "15px" }}
         />
-      </CalciteLabel>
+        <dl style={{ alignItems: "center" }}>
+          <dt
+            style={{
+              color: primaryLabelColor,
+              fontSize: "1.2rem",
+              marginRight: "35px",
+            }}
+          >
+            PERMIT-TO-ENTER
+          </dt>
+          <dd
+            style={{
+              color: valueLabelColor,
+              fontSize: "1.9rem",
+              fontWeight: "bold",
+              fontFamily: "calibri",
+              lineHeight: "1.2",
+              margin: "auto",
+            }}
+          >
+            {structureNumber[1] === 0 ? (
+              <span style={{ color: valueLabelColor }}>
+                {structureNumber[0]}% (0)
+              </span>
+            ) : (
+              <span style={{ color: valueLabelColor }}>
+                {structureNumber[0]}% (
+                {thousands_separators(structureNumber[1])})
+              </span>
+            )}
+          </dd>
+        </dl>
+      </div>
     </>
   );
 }); // End of lotChartgs
