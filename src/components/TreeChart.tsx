@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { useEffect, useRef, useState, use } from "react";
 import { treeCompensationLayer, treeCuttingLayer } from "../layers";
-import FeatureFilter from "@arcgis/core/layers/support/FeatureFilter";
-import Query from "@arcgis/core/rest/support/Query";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5percent from "@amcharts/amcharts5/percent";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
@@ -15,6 +13,7 @@ import {
   thousands_separators,
   generateTreeCompensationData,
   dateUpdate,
+  polygonViewQueryFeatureHighlight,
 } from "../Query";
 import "../App.css";
 import {
@@ -217,55 +216,12 @@ const TreeChart = () => {
         (emp: any) => emp.category === categorySelected,
       );
       const statusSelect = find?.value;
-      let highlightSelect: any;
-      const query = treeCuttingLayer.createQuery();
-
-      arcgisScene?.whenLayerView(treeCuttingLayer).then((layerView: any) => {
-        //chartLayerView = layerView;
-
-        treeCuttingLayer.queryFeatures(query).then((results: any) => {
-          const RESULT_LENGTH = results.features;
-          const ROW_N = RESULT_LENGTH.length;
-
-          const objID = [];
-          for (let i = 0; i < ROW_N; i++) {
-            const obj = results.features[i].attributes.OBJECTID;
-            objID.push(obj);
-          }
-
-          const queryExt = new Query({
-            objectIds: objID,
-          });
-
-          treeCuttingLayer.queryExtent(queryExt).then((result: any) => {
-            if (result.extent) {
-              arcgisScene?.view.goTo(result.extent);
-            }
-          });
-
-          highlightSelect && highlightSelect.remove();
-          highlightSelect = layerView.highlight(objID);
-
-          arcgisScene?.view.on("click", function () {
-            layerView.filter = new FeatureFilter({
-              where: undefined,
-            });
-            highlightSelect.remove();
-          });
-        }); // End of queryFeatures
-
-        layerView.filter = new FeatureFilter({
-          where: "Status = " + statusSelect,
-        });
-
-        // For initial state, we need to add this
-        arcgisScene?.view.on("click", () => {
-          layerView.filter = new FeatureFilter({
-            where: undefined,
-          });
-          highlightSelect && highlightSelect.remove();
-        });
-      }); // End of view.whenLayerView
+      const qExpression = `CP = '${contractpackages}' AND Status = ${statusSelect} `;
+      polygonViewQueryFeatureHighlight({
+        polygonLayer: treeCuttingLayer,
+        qExpression: qExpression,
+        view: arcgisScene?.view,
+      });
     });
 
     pieSeries.data.setAll(treeCuttingData);
@@ -442,61 +398,12 @@ const TreeChart = () => {
         (emp: any) => emp.category === categorySelected,
       );
       const statusSelect = find?.value;
-      let highlightSelect: any;
-      const query = treeCompensationLayer.createQuery();
-
-      arcgisScene
-        ?.whenLayerView(treeCompensationLayer)
-        .then((layerView: any) => {
-          //chartLayerView = layerView;
-
-          treeCompensationLayer.queryFeatures(query).then((results: any) => {
-            const RESULT_LENGTH = results.features;
-            const ROW_N = RESULT_LENGTH.length;
-
-            const objID = [];
-            for (let i = 0; i < ROW_N; i++) {
-              const obj = results.features[i].attributes.OBJECTID;
-              objID.push(obj);
-            }
-
-            const queryExt = new Query({
-              objectIds: objID,
-            });
-
-            treeCompensationLayer.queryExtent(queryExt).then((result: any) => {
-              if (result.extent) {
-                arcgisScene?.view.goTo(result.extent);
-              }
-            });
-
-            if (highlightSelect) {
-              highlightSelect.remove();
-            }
-            highlightSelect = layerView.highlight(objID);
-
-            arcgisScene?.view.on("click", function () {
-              layerView.filter = new FeatureFilter({
-                where: undefined,
-              });
-              highlightSelect.remove();
-            });
-          }); // End of queryFeatures
-
-          layerView.filter = new FeatureFilter({
-            where: "Compensation = " + statusSelect,
-          });
-
-          // For initial state, we need to add this
-          arcgisScene?.view.on("click", () => {
-            layerView.filter = new FeatureFilter({
-              where: undefined,
-            });
-            highlightSelect !== undefined
-              ? highlightSelect.remove()
-              : console.log("");
-          });
-        }); // End of view.whenLayerView
+      const qExpression = `CP = '${contractpackages}' AND Compensation = ${statusSelect} `;
+      polygonViewQueryFeatureHighlight({
+        polygonLayer: treeCompensationLayer,
+        qExpression: qExpression,
+        view: arcgisScene?.view,
+      });
     });
 
     pieSeries.data.setAll(treeCompensationData);

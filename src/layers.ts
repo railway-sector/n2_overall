@@ -2578,6 +2578,7 @@ export const buildingLayer = new BuildingSceneLayer({
       url: "https://gis.railway-sector.com/portal",
     },
   },
+  legendEnabled: false,
   outFields: ["Category", "Status", "BldgLevel", "StructureLevel", "Types"],
   title: "Station Structures",
 });

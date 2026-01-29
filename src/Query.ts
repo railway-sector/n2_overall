@@ -29,6 +29,7 @@ import Collection from "@arcgis/core/core/Collection";
 import ActionButton from "@arcgis/core/support/actions/ActionButton";
 import FeatureFilter from "@arcgis/core/layers/support/FeatureFilter";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
+import SceneLayer from "@arcgis/core/layers/SceneLayer";
 import {
   cpField,
   handedOverLotField,
@@ -449,12 +450,13 @@ export async function timeSeriesHandedOverChartData(
 
 // Structure
 const statusStructure = [
-  "Dismantling/Clearing",
+  "Demolished",
   "Paid",
   "For Payment Processing",
   "For Legal Pass",
-  "For Appraisal/Offer to Compensate",
-  "LBP Account Opening",
+  "For Offer to Compensate",
+  "For Notice of Taking",
+  "No Need to Acquire",
 ];
 
 export const statusStructureChart = [
@@ -481,6 +483,10 @@ export const statusStructureChart = [
   {
     category: statusStructure[5],
     value: 6,
+  },
+  {
+    category: statusStructure[6],
+    value: 7,
   },
 ];
 
@@ -1795,7 +1801,8 @@ type layerViewQueryProps = {
   pointLayer2?: FeatureLayer;
   lineLayer1?: FeatureLayer;
   lineLayer2?: FeatureLayer;
-  qExpression: any;
+  polygonLayer?: FeatureLayer | SceneLayer;
+  qExpression?: any;
   view: any;
 };
 
@@ -1817,4 +1824,12 @@ export const utilLineLayerViewQueryFeatureHighlight = ({
 }: layerViewQueryProps) => {
   highlightSelectedUtil(lineLayer1, qExpression, view);
   highlightSelectedUtil(lineLayer2, qExpression, view);
+};
+
+export const polygonViewQueryFeatureHighlight = ({
+  polygonLayer,
+  qExpression,
+  view,
+}: layerViewQueryProps) => {
+  highlightSelectedUtil(polygonLayer, qExpression, view);
 };

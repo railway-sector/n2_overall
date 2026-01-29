@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState, memo, use } from "react";
 import { structureLayer } from "../layers";
-import FeatureFilter from "@arcgis/core/layers/support/FeatureFilter";
-import Query from "@arcgis/core/rest/support/Query";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5percent from "@amcharts/amcharts5/percent";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
@@ -12,6 +10,7 @@ import {
   thousands_separators,
   statusStructureChart,
   dateUpdate,
+  polygonViewQueryFeatureHighlight,
 } from "../Query";
 import {
   cutoff_days,
@@ -187,50 +186,13 @@ const StructureChart = memo(() => {
         (emp: any) => emp.category === categorySelect,
       );
       const statusSelect = find?.value;
+      const qExpression = `CP = '${contractpackages}' AND StatusStruc = ${statusSelect} `;
 
-      let highlightSelect: any;
-      const query = structureLayer.createQuery();
-
-      arcgisScene?.whenLayerView(structureLayer).then((layerView: any) => {
-        //chartLayerView = layerView;
-
-        structureLayer.queryFeatures(query).then(function (results) {
-          const RESULT_LENGTH = results.features;
-          const ROW_N = RESULT_LENGTH.length;
-
-          const objID = [];
-          for (let i = 0; i < ROW_N; i++) {
-            const obj = results.features[i].attributes.OBJECTID;
-            objID.push(obj);
-          }
-
-          const queryExt = new Query({
-            objectIds: objID,
-          });
-
-          structureLayer.queryExtent(queryExt).then(function (result) {
-            if (result.extent) {
-              arcgisScene?.view.goTo(result.extent);
-            }
-          });
-
-          if (highlightSelect) {
-            highlightSelect.remove();
-          }
-          highlightSelect = layerView.highlight(objID);
-
-          arcgisScene?.view.on("click", function () {
-            layerView.filter = new FeatureFilter({
-              where: undefined,
-            });
-            highlightSelect.remove();
-          });
-        }); // End of queryFeatures
-
-        layerView.filter = new FeatureFilter({
-          where: "StatusStruc = " + statusSelect,
-        });
-      }); // End of view.whenLayerView
+      polygonViewQueryFeatureHighlight({
+        polygonLayer: structureLayer,
+        qExpression: qExpression,
+        view: arcgisScene?.view,
+      });
     });
 
     pieSeries.data.setAll(structureData);

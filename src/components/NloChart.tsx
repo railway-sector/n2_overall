@@ -1,7 +1,5 @@
 import { useRef, useState, useEffect, memo, use } from "react";
 import { nloLayer } from "../layers";
-import FeatureFilter from "@arcgis/core/layers/support/FeatureFilter";
-import Query from "@arcgis/core/rest/support/Query";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5percent from "@amcharts/amcharts5/percent";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
@@ -10,6 +8,7 @@ import {
   dateUpdate,
   generateNloData,
   generateNloNumber,
+  polygonViewQueryFeatureHighlight,
   statusNloChart,
   thousands_separators,
 } from "../Query";
@@ -186,49 +185,13 @@ const NloChart = memo(() => {
         (emp: any) => emp.category === categorySelect,
       );
       const typeSelect = find?.value;
-      let highlightSelect: any;
-      const query = nloLayer.createQuery();
+      const qExpression = `CP = '${contractpackages}' AND ${nloStatusField} = ${typeSelect} `;
 
-      arcgisScene?.whenLayerView(nloLayer).then((layerView: any) => {
-        //chartLayerView = layerView;
-
-        nloLayer.queryFeatures(query).then(function (results) {
-          const RESULT_LENGTH = results.features;
-          const ROW_N = RESULT_LENGTH.length;
-
-          const objID = [];
-          for (let i = 0; i < ROW_N; i++) {
-            const obj = results.features[i].attributes.OBJECTID;
-            objID.push(obj);
-          }
-
-          const queryExt = new Query({
-            objectIds: objID,
-          });
-
-          nloLayer.queryExtent(queryExt).then(function (result) {
-            if (result.extent) {
-              arcgisScene?.view.goTo(result.extent);
-            }
-          });
-
-          if (highlightSelect) {
-            highlightSelect.remove();
-          }
-          highlightSelect = layerView.highlight(objID);
-
-          arcgisScene?.view.on("click", function () {
-            layerView.filter = new FeatureFilter({
-              where: undefined,
-            });
-            highlightSelect.remove();
-          });
-        }); // End of queryFeatures
-
-        layerView.filter = new FeatureFilter({
-          where: `${nloStatusField} = ` + typeSelect,
-        });
-      }); // End of view.whenLayerView
+      polygonViewQueryFeatureHighlight({
+        polygonLayer: nloLayer,
+        qExpression: qExpression,
+        view: arcgisScene?.view,
+      });
     });
 
     pieSeries.data.setAll(nloData);

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { useEffect, useRef, useState, use } from "react";
 import { viaductLayer } from "../layers";
-import FeatureFilter from "@arcgis/core/layers/support/FeatureFilter";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
@@ -15,6 +14,7 @@ import {
   viaductTypeChart,
   dateUpdate,
   stationStructureDisplay,
+  polygonViewQueryFeatureHighlight,
 } from "../Query";
 import {
   chard_width,
@@ -294,47 +294,12 @@ const ViaductChart = () => {
               ? 3
               : 1;
 
-        const expression =
-          "CP = '" +
-          contractpackages +
-          "'" +
-          " AND " +
-          "Type = " +
-          typeSelect +
-          " AND " +
-          "Status1 = " +
-          selectedStatus;
-
-        // Define Query
-        const query = viaductLayer.createQuery();
-        // query.where = '1=1';
-
-        // layerView filter and highlight
-        let highlightSelect: any;
-        arcgisScene?.whenLayerView(viaductLayer).then((layerView: any) => {
-          viaductLayer.queryFeatures(query).then((results: any) => {
-            const lengths = results.features;
-            const rows = lengths.length;
-
-            const objID = [];
-            for (let i = 0; i < rows; i++) {
-              const obj = results.features[i].attributes.OBJECTID;
-              objID.push(obj);
-            }
-
-            highlightSelect && highlightSelect.remove();
-            highlightSelect = layerView.highlight(objID);
-
-            arcgisScene?.view.on("click", () => {
-              layerView.filter = new FeatureFilter({
-                where: undefined,
-              });
-              highlightSelect.remove();
-            });
-          });
-          layerView.filter = new FeatureFilter({
-            where: expression,
-          });
+        const qExpression = `CP = '${contractpackages}' AND Type = ${typeSelect} AND Status = ${selectedStatus}`;
+        console.log(qExpression);
+        polygonViewQueryFeatureHighlight({
+          polygonLayer: viaductLayer,
+          qExpression: qExpression,
+          view: arcgisScene?.view,
         });
       });
       legend.data.push(series);

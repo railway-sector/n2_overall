@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { useEffect, useRef, useState, use } from "react";
 import { handedOverLotLayer, lotLayer } from "../layers";
-import FeatureFilter from "@arcgis/core/layers/support/FeatureFilter";
-import Query from "@arcgis/core/rest/support/Query";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5percent from "@amcharts/amcharts5/percent";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
@@ -15,6 +13,7 @@ import {
   generateLotNumber,
   highlightLot,
   highlightRemove,
+  polygonViewQueryFeatureHighlight,
   thousands_separators,
   zoomToLayer,
 } from "../Query";
@@ -92,6 +91,23 @@ const LotChart = () => {
   const querySuperUrgentCp = querySuperUrgent + " AND " + queryContractp;
 
   useEffect(() => {
+    if (superurgentswitch === superurgent_items[1]) {
+      zoomToLayer(lotLayer, arcgisScene?.view);
+      highlightLot(lotLayer, arcgisScene);
+    } else {
+      highlightRemove();
+    }
+  }, [superurgentswitch]);
+
+  useEffect(() => {
+    if (handedOverCheckBox === true) {
+      handedOverLotLayer.visible = true;
+    } else {
+      handedOverLotLayer.visible = false;
+    }
+  }, [handedOverCheckBox]);
+
+  useEffect(() => {
     if (superurgentswitch === superurgent_items[0]) {
       if (contractpackages === "All") {
         lotLayer.definitionExpression = queryDefault;
@@ -111,23 +127,6 @@ const LotChart = () => {
       }
     }
 
-    if (superurgentswitch === superurgent_items[1]) {
-      zoomToLayer(lotLayer, arcgisScene?.view);
-      highlightLot(lotLayer, arcgisScene);
-    } else {
-      highlightRemove();
-    }
-  }, [superurgentswitch]);
-
-  useEffect(() => {
-    if (handedOverCheckBox === true) {
-      handedOverLotLayer.visible = true;
-    } else {
-      handedOverLotLayer.visible = false;
-    }
-  }, [handedOverCheckBox]);
-
-  useEffect(() => {
     generateLotData().then((result: any) => {
       setLotData(result);
     });
@@ -254,57 +253,13 @@ const LotChart = () => {
         (emp: any) => emp.category === categorySelected,
       );
       const statusSelect = find?.value;
+      const qExpression = `CP = '${contractpackages}' AND ${lotStatusField} = ${statusSelect} `;
 
-      let highlightSelect: any;
-
-      const query = lotLayer.createQuery();
-
-      arcgisScene?.whenLayerView(lotLayer).then((layerView: any) => {
-        //chartLayerView = layerView;
-
-        lotLayer.queryFeatures(query).then(function (results) {
-          const RESULT_LENGTH = results.features;
-          const ROW_N = RESULT_LENGTH.length;
-
-          const objID = [];
-          for (let i = 0; i < ROW_N; i++) {
-            const obj = results.features[i].attributes.OBJECTID;
-            objID.push(obj);
-          }
-
-          const queryExt = new Query({
-            objectIds: objID,
-          });
-
-          lotLayer.queryExtent(queryExt).then(function (result) {
-            if (result.extent) {
-              arcgisScene?.view.goTo(result.extent);
-            }
-          });
-
-          highlightSelect && highlightSelect.remove();
-          highlightSelect = layerView.highlight(objID);
-
-          arcgisScene?.view.on("click", function () {
-            layerView.filter = new FeatureFilter({
-              where: undefined,
-            });
-            highlightSelect.remove();
-          });
-        }); // End of queryFeatures
-
-        layerView.filter = new FeatureFilter({
-          where: lotStatusField + " = " + statusSelect,
-        });
-
-        // For initial state, we need to add this
-        arcgisScene?.view.on("click", () => {
-          layerView.filter = new FeatureFilter({
-            where: undefined,
-          });
-          highlightSelect && highlightSelect.remove();
-        });
-      }); // End of view.whenLayerView
+      polygonViewQueryFeatureHighlight({
+        polygonLayer: lotLayer,
+        qExpression: qExpression,
+        view: arcgisScene?.view,
+      });
     });
 
     pieSeries.data.setAll(lotData);
